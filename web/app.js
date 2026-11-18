@@ -601,6 +601,8 @@ function spawnBubbles(scene) {
 function bindPoke() {
   const scene = document.querySelector('.fish-scene');
   if (!scene) return;
+  // 安卓/部分浏览器长按会弹原生菜单，直接屏蔽（图片点击事件仍由 scene 接收）
+  scene.addEventListener('contextmenu', (e) => e.preventDefault());
   let combo = 0;
   let comboTimer = null;
   scene.addEventListener('click', () => {

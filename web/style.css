@@ -466,8 +466,14 @@ details#keyDetails > summary:hover { color: var(--cyan); }
 }
 
 /* ================= 戳一戳 · 大肥鱼 ================= */
-.fish-scene { cursor: pointer; }
-.fish-scene img { transition: transform .18s ease; }
+.fish-scene {
+  cursor: pointer;
+  -webkit-touch-callout: none;              /* iOS：禁用长按「存储图像/拷贝」菜单 */
+  -webkit-user-select: none; user-select: none;
+  -webkit-tap-highlight-color: transparent; /* 去掉安卓点击灰块 */
+  touch-action: manipulation;               /* 取消双击缩放与 300ms 点击延迟，连戳更跟手 */
+}
+.fish-scene img { transition: transform .18s ease; -webkit-user-drag: none; pointer-events: none; }
 .fish-scene:hover img { transform: scale(1.02) rotate(-1deg); }
 .fish-scene.poke { animation: fishPoke .42s cubic-bezier(.36, .07, .19, .97); }
 @keyframes fishPoke {
