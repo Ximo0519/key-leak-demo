@@ -1,0 +1,26 @@
+{
+  "version": "2.0",
+  "envId": "keyweb-d6gajix0e7f0478dd",
+  "functionRoot": "./functions",
+  "functions": [
+    {
+      "name": "proxy",
+      "timeout": 10,
+      "runtime": "Nodejs18.15",
+      "memorySize": 256,
+      "handler": "index.main",
+      "installDependency": false,
+      "description": "Key 泄露体验页代理：演示令牌/自带 Key 双路径调用通义千问",
+      "envVariables": {
+        "DEMO_TOKEN": "demo_552803f192a21819c1d96f71186256f0",
+        "SESSION_SECRET": "__CHANGE_ME__（部署前换成你自己的随机密钥，泄露此值等于可伪造会话令牌）",
+        "UPSTREAM_MODEL": "qwen-plus",
+        "DEMO_SESSION_FREE": "2",
+        "DEMO_SESSION_LIMIT": "5",
+        "DEMO_DAILY_LIMIT": "300",
+        "IP_DAILY_LIMIT": "15",
+        "RATE_LIMIT_PER_HOUR": "120"
+      }
+    }
+  ]
+}
