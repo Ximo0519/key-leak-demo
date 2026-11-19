@@ -521,3 +521,17 @@ button.inject {
 }
 button.inject:hover { background: rgba(var(--amb-rgb), .1); transform: translateY(-1px); box-shadow: 0 3px 10px rgba(var(--amb-rgb), .18); }
 button.inject:active { transform: translateY(0); }
+
+/* ============ curl 语法切换标签 ============ */
+.curl-tabs { display: inline-flex; gap: 6px; margin-left: 10px; vertical-align: middle; }
+button.curl-tab {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: .06em;
+  color: var(--dim); background: var(--panel-2); border: 1px solid var(--line);
+  padding: 2px 10px; cursor: pointer; transition: color .15s, border-color .15s;
+}
+button.curl-tab:hover { color: var(--ink-soft); }
+button.curl-tab.on {
+  color: var(--cyan); border-color: rgba(var(--cyan-rgb), .5);
+  background: rgba(var(--cyan-rgb), .08);
+}
+

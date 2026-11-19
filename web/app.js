@@ -284,6 +284,8 @@ async function chatDemo(prompt, retried) {
     renderQuota();
     refreshControls();
     showNotice('本会话 5 次演示额度已全部用尽，输入你自己的 Key 继续互动，或刷新页面重新领取。', 'warn');
+    // 兜底：已偷到 Key 但因额度/预算耗尽无法完成成功互动时，仍解锁知识区
+    revealKnow();
     els.keyDetails.open = true;
     els.keyInput.focus();
     return;
@@ -291,6 +293,7 @@ async function chatDemo(prompt, retried) {
   if (data.error === 'IP_DAILY_LIMITED' || (status === 429 && data && data.error === 'IP_DAILY_LIMITED')) {
     setFish('sad');
     showNotice('本 IP 今日演示次数已达上限，请明天再来，或输入你自己的 Key 继续互动。', 'warn');
+    revealKnow(); // 兜底：同上
     els.keyDetails.open = true;
     return;
   }
@@ -324,6 +327,7 @@ async function chatUser(prompt) {
     setFish('sad');
     renderQuota();
     showNotice('你的 Key 额度已用尽（上游返回 429）。', 'error');
+    revealKnow(); // 兜底：偷过 Key 但个人 Key 也无额度时，仍解锁知识区
     return;
   }
   if (data.error === 'USER_KEY_INVALID') {
@@ -341,12 +345,25 @@ async function chatUser(prompt) {
 }
 
 /* ---------------- 窃取令牌面板 ---------------- */
+/* curl 展示语法：bash（多行续行+单引号）与 Windows CMD（单行+双引号转义）。
+ * 按当前操作系统自动选中，弹窗内可手动切换。 */
+let curlVariant = /Win/i.test(navigator.platform || navigator.userAgent) ? 'cmd' : 'bash';
+
 function buildCurl() {
+  const url = absoluteEndpoint();
+  const sess = state.session || 'sess_...';
+  if (curlVariant === 'cmd') {
+    return 'curl -X POST "' + url + '"'
+      + ' -H "Content-Type: application/json"'
+      + ' -H "X-Demo-Token: ' + CONFIG.demoToken + '"'
+      + ' -H "X-Demo-Session: ' + sess + '"'
+      + ' -d "{\\"prompt\\":\\"夸夸我今天写了一集教程\\"}"';
+  }
   return [
-    'curl -X POST "' + absoluteEndpoint() + '" \\',
+    'curl -X POST "' + url + '" \\',
     '  -H "Content-Type: application/json" \\',
     '  -H "X-Demo-Token: ' + CONFIG.demoToken + '" \\',
-    '  -H "X-Demo-Session: ' + (state.session || 'sess_...') + '" \\',
+    '  -H "X-Demo-Session: ' + sess + '" \\',
     '  -d \'{"prompt":"夸夸我今天写了一集教程"}\'',
   ].join('\n');
 }
@@ -453,6 +470,18 @@ function bind() {
       setTimeout(() => { b.textContent = old; }, 1200);
     });
   });
+
+  const tabBash = $('tabBash');
+  const tabCmd = $('tabCmd');
+  function setCurlTab(v) {
+    curlVariant = v;
+    tabBash.classList.toggle('on', v === 'bash');
+    tabCmd.classList.toggle('on', v === 'cmd');
+    els.mCurl.textContent = buildCurl();
+  }
+  tabBash.addEventListener('click', () => setCurlTab('bash'));
+  tabCmd.addEventListener('click', () => setCurlTab('cmd'));
+  setCurlTab(curlVariant);
 
   els.useTokenBtn.addEventListener('click', async () => {
     const v = els.tokenPaste.value.trim();

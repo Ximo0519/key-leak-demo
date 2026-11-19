@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Michroma&family=JetBrains+Mono:wght@300;400;500;700&family=Noto+Sans+SC:wght@300;400;500;700;900&family=Noto+Serif+SC:wght@600;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=8">
+  <link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
   <div class="grain"></div>
@@ -216,7 +216,12 @@
         <div class="dt-line"><span class="k">Content-Type:</span><span class="v">application/json</span></div>
         <div class="dt-line"><span class="k">Body:</span><span class="v">{"action":"chat","prompt":"今天写了一集教程"}</span></div>
         <div class="dt-curl">
-          <div class="dt-line"><span class="k">等价 curl（可在页面外直接调用）：</span></div>
+          <div class="dt-line"><span class="k">等价 curl（可在页面外直接调用）：</span>
+            <span class="curl-tabs">
+              <button type="button" class="curl-tab" id="tabBash">Bash / Git Bash</button>
+              <button type="button" class="curl-tab" id="tabCmd">Windows CMD</button>
+            </span>
+          </div>
           <pre id="mCurl"></pre>
           <button class="copy" data-copy="mCurl" type="button">复制 curl</button>
         </div>
@@ -229,6 +234,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=16"></script>
+  <script src="app.js?v=18"></script>
 </body>
 </html>
