@@ -49,6 +49,11 @@ cloudbaserc.json    CloudBase 部署配置
    - 其余额度参数见 `cloudbaserc.json`
 3. 部署：`tcb hosting deploy ./web /` 部署静态页；`tcb fn deploy proxy` 首次部署函数。
    ⚠️ 注意：`tcb fn deploy` 会用配置文件**整体覆盖**云端环境变量，日常更新代码请只用 `tcb fn code update proxy`。
+   ⚠️ **`SESSION_SECRET` 是最容易被这一步坑掉的变量**：`index.js` 在缺失该变量时会回落成
+   `dev-insecure-secret-change-me`，若被 `tcb fn deploy` 覆盖成 `cloudbaserc.json` 里的占位串，
+   等于用公开字符串签会话——任何人都能伪造会话白嫖额度。部署后务必执行
+   `tcb fn detail proxy -e <envId>` 人工核对 `SESSION_SECRET`：应为 64 位随机 hex，
+   不能是占位串、不能是上述回落值、不能为空。
 4. 为函数开启 HTTP 访问服务并绑定 `/api/proxy` 路由，将地址填入 `web/app.js` 的 `CONFIG.apiBase`。
 
 ## 本地跑
