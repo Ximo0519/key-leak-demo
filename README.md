@@ -42,18 +42,19 @@ cloudbaserc.json    CloudBase 部署配置
 
 ## 部署（腾讯云开发 CloudBase）
 
-1. 创建环境，`cloudbaserc.json` 中填入你的 `envId`，并把 `SESSION_SECRET` 换成随机密钥（**切勿使用示例值**）。
+1. 创建环境，`cloudbaserc.json` 中填入你的 `envId`，并把 `SESSION_SECRET` 换成 ≥32 位随机串（**切勿使用示例值**）。
 2. 在控制台为函数 `proxy` 配置环境变量：
    - `UPSTREAM_API_KEY`：阿里云百炼真 Key（**只放控制台，不要写进代码仓库**）
    - `DEMO_TOKEN`：自定的演示令牌，需与 `web/app.js` 中 `CONFIG.demoToken` 一致
    - 其余额度参数见 `cloudbaserc.json`
 3. 部署：`tcb hosting deploy ./web /` 部署静态页；`tcb fn deploy proxy` 首次部署函数。
    ⚠️ 注意：`tcb fn deploy` 会用配置文件**整体覆盖**云端环境变量，日常更新代码请只用 `tcb fn code update proxy`。
-   ⚠️ **`SESSION_SECRET` 是最容易被这一步坑掉的变量**：`index.js` 在缺失该变量时会回落成
-   `dev-insecure-secret-change-me`，若被 `tcb fn deploy` 覆盖成 `cloudbaserc.json` 里的占位串，
-   等于用公开字符串签会话——任何人都能伪造会话白嫖额度。部署后务必执行
-   `tcb fn detail proxy -e <envId>` 人工核对 `SESSION_SECRET`：应为 64 位随机 hex，
-   不能是占位串、不能是上述回落值、不能为空。
+   ⚠️ **`SESSION_SECRET` 是最容易被这一步坑掉的变量**：它被覆盖成 `cloudbaserc.json` 里的占位串后，
+   等于用公开字符串签会话——任何人都能伪造会话白嫖额度。因此函数内置了快速失败：
+   变量缺失、等于占位串、等于旧版回落值 `dev-insecure-secret-change-me`、或长度不足 32 位时，
+   `action:session` 直接返回 `503 SECRET_MISCONFIGURED`，不会静默降级成弱密钥（页面会显示"服务未就绪"）。
+   部署后仍建议执行 `tcb fn detail proxy -e <envId>` 人工核对：应为 64 位随机 hex。
+   另可用 `tcb fn env pull proxy --output-file <仓库外路径>` 先把现有变量备份到本地再动配置。
 4. 为函数开启 HTTP 访问服务并绑定 `/api/proxy` 路由，将地址填入 `web/app.js` 的 `CONFIG.apiBase`。
 
 ## 本地跑

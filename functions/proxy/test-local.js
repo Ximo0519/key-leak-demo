@@ -8,7 +8,8 @@ const crypto = require('crypto');
 
 process.env.UPSTREAM_API_KEY = 'sk-test-official';
 process.env.DEMO_TOKEN = 'demo_test_token';
-process.env.SESSION_SECRET = 'test-secret';
+const TEST_SECRET = 'test-only-secret-0123456789abcdef'; // ≥32 位，满足 fail-fast 要求
+process.env.SESSION_SECRET = TEST_SECRET;
 process.env.DEMO_SESSION_FREE = '2';
 process.env.DEMO_SESSION_LIMIT = '5';
 process.env.DEMO_DAILY_LIMIT = '100'; // 全局预算兜底，测试不触发
@@ -91,7 +92,7 @@ async function main() {
   r = await call({ action: 'chat', prompt: 'hi' }, { 'X-Demo-Token': process.env.DEMO_TOKEN, 'X-Demo-Session': tampered });
   check('篡改会话 → 401', r.status === 401);
   const expiredPayload = Buffer.from(JSON.stringify({ r: 'aaaa', e: Date.now() - 1000 })).toString('hex');
-  const expiredSig = crypto.createHmac('sha256', 'test-secret').update(expiredPayload).digest('hex').slice(0, 16);
+  const expiredSig = crypto.createHmac('sha256', TEST_SECRET).update(expiredPayload).digest('hex').slice(0, 16);
   r = await call({ action: 'chat', prompt: 'hi' }, { 'X-Demo-Token': process.env.DEMO_TOKEN, 'X-Demo-Session': `sess_${expiredPayload}_${expiredSig}` });
   check('过期会话 → 401', r.status === 401);
   r = await call({ action: 'chat', prompt: '   ' }, { 'X-Demo-Token': process.env.DEMO_TOKEN, 'X-Demo-Session': sess });

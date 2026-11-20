@@ -15,7 +15,7 @@ const path = require('path');
 
 process.env.DEMO_TOKEN = process.env.DEMO_TOKEN || 'demo_fish_ep03_change_me';
 process.env.DEMO_DAILY_LIMIT = process.env.DEMO_DAILY_LIMIT || '5';
-process.env.SESSION_SECRET = process.env.SESSION_SECRET || 'local-preview-secret';
+process.env.SESSION_SECRET = process.env.SESSION_SECRET || 'local-preview-insecure-secret-32chars+';
 
 const PORT_IDX = process.argv.indexOf('--port');
 const PORT = Number(PORT_IDX > -1 ? process.argv[PORT_IDX + 1] : process.env.PORT || 5173);

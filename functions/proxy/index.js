@@ -19,7 +19,7 @@
  * 环境变量：
  *   UPSTREAM_API_KEY    必填，阿里云百炼官方真 Key（只存在于此，前端永远拿不到）
  *   DEMO_TOKEN          必填，演示令牌，必须与前端 CONFIG.demoToken 一致
- *   SESSION_SECRET      建议填写，会话签名密钥（不填则用开发默认值）
+ *   SESSION_SECRET      必填，会话签名密钥（≥32 位随机串；缺失/占位/弱密钥时服务直接 503，不会降级）
  *   UPSTREAM_MODEL      可选，默认 qwen-plus
  *   DEMO_SESSION_FREE   可选，每会话免费额度（前端显示），默认 2
  *   DEMO_SESSION_LIMIT  可选，每会话总额度（免费 + 解锁示例 Key 后可用），默认 5
@@ -118,8 +118,23 @@ function rateLimited(ip) {
 }
 
 // ---- 会话：HMAC 自签名（hex 编码，不含下划线，安全拆分） ----
+// 密钥不安全时快速失败：宁可 503，也不静默降级成"人人可伪造"的弱密钥
+const INSECURE_FALLBACK = 'dev-insecure-secret-change-me';
+const PLACEHOLDER_SECRET = '__CHANGE_ME__（部署前换成你自己的随机密钥，泄露此值等于可伪造会话令牌）';
+
 function sessionSecret() {
-  return process.env.SESSION_SECRET || 'dev-insecure-secret-change-me';
+  const s = process.env.SESSION_SECRET;
+  const insecure =
+    !s ||
+    s === INSECURE_FALLBACK ||
+    s === PLACEHOLDER_SECRET ||
+    s.length < 32;
+  if (insecure) {
+    const err = new Error('SESSION_SECRET 未配置或不安全');
+    err.code = 'SECRET_MISCONFIGURED';
+    throw err;
+  }
+  return s;
 }
 
 function issueSession() {
@@ -254,6 +269,17 @@ exports.main = async (event) => {
   let bodyObj = {};
   if (raw) {
     try { bodyObj = JSON.parse(raw); } catch (_) { return respond(400, { ok: false, error: 'BAD_JSON' }); }
+  }
+
+  // 2b. 签名密钥自检（快速失败：配置缺失/占位/弱密钥时明确报错，绝不静默降级）
+  try {
+    sessionSecret();
+  } catch (e) {
+    return respond(503, {
+      ok: false,
+      error: 'SECRET_MISCONFIGURED',
+      hint: '服务端 SESSION_SECRET 未正确配置，暂时无法签发会话',
+    });
   }
 
   // 3. 领取会话（页面加载时调用，无需凭证，仅限流保护）

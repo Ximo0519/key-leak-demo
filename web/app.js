@@ -200,6 +200,7 @@ function hideNotice() {
 
 /* ---------------- 会话初始化 ---------------- */
 async function initSession(silent) {
+  let secretBroken = false;
   try {
     const { status, data } = await api({ action: 'session' });
     if (status === 200 && data && data.ok) {
@@ -214,7 +215,17 @@ async function initSession(silent) {
       refreshControls();
       return true;
     }
+    if (data && data.error === 'SECRET_MISCONFIGURED') secretBroken = true;
   } catch (_) { /* 网络错误 */ }
+  if (secretBroken) {
+    els.quotaText.textContent = '服务未就绪';
+    setFish('sad');
+    refreshControls();
+    if (!silent) {
+      showNotice('服务端密钥没有正确配置，暂时不可用。这不是你的问题，管理员修复后再来玩～', 'error');
+    }
+    return false;
+  }
   els.quotaText.textContent = '后端未连接';
   if (!silent) {
     showNotice('无法连接演示后端：请检查云函数是否部署、CONFIG.apiBase 是否填写正确。', 'error');
@@ -254,6 +265,11 @@ async function chatDemo(prompt, retried) {
   if (!data) {
     setFish('sad');
     showNotice('云函数无响应，请检查部署与 CONFIG.apiBase。', 'error');
+    return;
+  }
+  if (data.error === 'SECRET_MISCONFIGURED') {
+    setFish('sad');
+    showNotice('服务端密钥没有正确配置，暂时不可用。这不是你的问题，管理员修复后再来玩～', 'error');
     return;
   }
   if (data.ok) {
@@ -311,6 +327,11 @@ async function chatUser(prompt) {
   if (!data) {
     setFish('sad');
     showNotice('云函数无响应，请检查部署与 CONFIG.apiBase。', 'error');
+    return;
+  }
+  if (data.error === 'SECRET_MISCONFIGURED') {
+    setFish('sad');
+    showNotice('服务端密钥没有正确配置，暂时不可用。这不是你的问题，管理员修复后再来玩～', 'error');
     return;
   }
   if (data.ok) {
